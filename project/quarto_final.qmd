@@ -1,0 +1,45 @@
+---
+title: "Wash Factsheet"
+subtitle: "3 in 10 people do not have basic handwashing facility with water and soap at home"
+author: "Khanh Ha Vy Doan"
+date: "04-25-2024"
+format: html
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+# Percentage of population in major continents with no handwashing facility with water and soap at home
+## while a small percentage has LIMITED handwashing facility
+
+```{r}
+install.packages("tidyverse")
+install.packages("plotly")
+install.packages("maps")
+
+library(tidyverse)
+library(plotly)
+library(maps)
+
+unicef_metadata <- read_csv("unicef_metadata.csv")
+unicef_indicator_1 <- read_csv("unicef_indicator_1.csv")
+unicef_indicator_3 <- read_csv("unicef_indicator_3.csv")
+unicef_indicator_4 <- read_csv("unicef_indicator_4.csv")
+
+data_join <- unicef_metadata %>%
+  inner_join(unicef_indicator_1, by = c("country","year"= "time_period")) %>%
+  inner_join(unicef_indicator_3, by = c("country","year" = "time_period")) %>%
+  inner_join(unicef_indicator_4, by = c("country"))
+
+# bar
+bar_chart_data <- data_join %>%
+  group_by(continent) %>%
+  summarise(m_Obs_value=mean(Obs_value, na.rm = TRUE))
+ggplot(data = bar_chart_data) +
+  aes(x = continent, y = m_Obs_value,fill = continent) +
+  geom_bar(stat="identity") +
+  labs(x="Continent",y="Percentage of population") +
+  theme_classic()+
+  theme(text = element_text(family = "serif"), legend.position = "hide")
+```
+Since 2000, progress has been achieved with the percentage of the world population with access to basic hand hygiene increasing from 67% to 71%. Notably in Asia and Africa.
