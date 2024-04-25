@@ -1,10 +1,14 @@
 ---
 title: "WASH Factsheet 2021 - Percentage of the population with basic handwashing facility with water and soap at home"
-subtitle: "UNICEF warns: 3 in 10 people do not have basic handwashing facility with water and soap at home"
+subtitle: "UNICEF warns: **3 in 10** people do not have basic handwashing facility with water and soap at home"
 author: "Khanh Ha Vy Doan"
 date: "04-25-2024"
 source: UNICEF
 format: html
+toc: true
+theme: cerulean
+backgroundcolor: "#f3f3eb"
+mainfont: Georgia
 execute:
   echo: false
   warning: false
