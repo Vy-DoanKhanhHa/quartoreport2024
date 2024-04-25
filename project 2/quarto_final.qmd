@@ -1,0 +1,134 @@
+---
+title: "WASH Factsheet 2021 - Percentage of the population with basic handwashing facility with water and soap at home"
+subtitle: "UNICEF warns: 3 in 10 people do not have basic handwashing facility with water and soap at home"
+author: "Khanh Ha Vy Doan"
+date: "04-25-2024"
+source: UNICEF
+format: html
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+# World Snapshot 
+
+## Percentage of handwashing facilities with water and soap at home all over the world 
+
+***In the least developed countries, more than 6 in 10 people lack basic hand hygiene facilities at home.***
+
+Knowing the importance of handwashing for preventing diseases, billions of people still lack access to basic handwashing facilities. UNICEF reports uneven progress towards this goal, with the most vulnerable populations being left behind. They urge governments to invest in long-term solutions for hand hygiene access.
+
+```{r}
+install.packages("tidyverse")
+install.packages("plotly")
+install.packages("maps")
+
+library(tidyverse)
+library(plotly)
+library(maps)
+
+unicef_metadata <- read_csv("unicef_metadata.csv")
+unicef_indicator_1 <- read_csv("unicef_indicator_1.csv")
+unicef_indicator_3 <- read_csv("unicef_indicator_3.csv")
+unicef_indicator_4 <- read_csv("unicef_indicator_4.csv")
+
+data_join <- unicef_metadata %>%
+  inner_join(unicef_indicator_1, by = c("country","year"= "time_period")) %>%
+  inner_join(unicef_indicator_3, by = c("country","year" = "time_period")) %>%
+  inner_join(unicef_indicator_4, by = c("country"))
+
+# map
+data_join_2021 <- data_join %>%
+  filter(year==2021)
+map_data_join_2021 <- data_join_2021 %>%
+  full_join(map_world, by = c("country" = "region"))
+ggplot(data=map_data_join_2021) +
+  aes(x=long,y=lat, group = group, fill = obs_value) +
+  geom_polygon() +
+  labs(fill = "Percentage") +
+  scale_fill_gradient2(low="#C26B50",high="#529985",midpoint = 50,mid="#DBCE47") +
+  theme(axis.title.x=element_blank(),
+      axis.text.x=element_blank(),
+      axis.ticks.x=element_blank(), 
+      axis.title.y=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks.y=element_blank())
+
+#fig.cap: "Globally, 3 in 10 people – or 2.3 billion – do not have access to basic handwashing facilities with water and soap at home. In conflict-affected, fragile, and refugee settings, 1 in 5 people do not have any hand hygiene facility at home."
+```
+
+# 2021 Key points
+
+-   **3 in 10** people globally lack basic handwashing facilities at home.
+-   The situation is worse in **least developed countries** and **fragile settings**.
+-   Progress is slow, requiring significant acceleration to reach everyone by 2030.
+-   UNICEF emphasizes hand hygiene as a public health and economic investment.
+
+## Percentage of population in major continents with no handwashing facility
+
+***while a small percentage has LIMITED handwashing facility.***
+
+```{r}
+# bar
+bar_chart_data <- data_join %>%
+  group_by(continent) %>%
+  summarise(m_Obs_value=mean(Obs_value, na.rm = TRUE))
+ggplot(data = bar_chart_data) +
+  aes(x = continent, y = m_Obs_value,fill = continent) +
+  geom_bar(stat="identity") +
+  labs(x="Continent",y="Percentage of population") +
+  theme_classic()+
+  theme(text = element_text(family = "serif"), legend.position = "hide")
+```
+
+Since 2000, progress has been achieved with the percentage of the world population with access to basic hand hygiene increasing from 67% to 71%. Notably in Asia and Africa.
+
+## Statistics per country
+
+```{r}
+# time series
+ggplot(data=data_join) +
+  aes(year, obs_value, group = country, color = continent) + 
+  geom_line() +
+  labs(x="Evolution by year",y="Access to handwashing facility (%)", color = "Continent") +
+  theme_minimal() +
+  theme(text = element_text(family = "serif"))
+```
+
+# Access to handwashing facility at home in relation to Life Expectancy 
+
+It is evident that a majority of African countries lack basic handwashing facility at home. Despite not being able to fight infectious disease without water and soap in the house, data shows **little correlation between Life Expectancy and access to basic hand hygiene facility.**
+
+```{r}
+# scatter plot
+ggplot(data_join_2021) +
+  aes(lifeExp, obs_value, color = continent, size = pop)+
+  geom_point(alpha= 0.5)+
+  geom_smooth(method = "lm", se = FALSE) +
+  guides(size=FALSE) +
+  labs(
+        x="Access to water and soap",
+        y="Life Expectancy",
+        color= "Continent"
+      )+
+      theme_minimal()+
+  theme(text = element_text(family="serif"))
+```
+
+## Life Expectancy by continent
+
+```{r}
+# table
+table_data <- data_join_2021 %>%
+  group_by(continent) %>%
+  summarise(m_lifeExp=mean(lifeExp, na.rm = TRUE))
+library(knitr)
+
+# Print data as a table
+kable(table_data)
+```
+
+# Conclusion 
+
+Despite some progress in recent years, a significant portion of the world's population still lacks access to basic handwashing facilities at home, a critical tool in preventing the spread of disease. This lack of access disproportionately affects the most vulnerable, including those in least developed countries and fragile settings. UNICEF urges governments to move beyond temporary solutions and prioritize long-term investments in water, sanitation, and hygiene infrastructure to ensure everyone has access to this fundamental public health measure.
