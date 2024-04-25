@@ -22,41 +22,58 @@ bar_chart_data <- data_join %>%
   summarise(m_Obs_value=mean(Obs_value, na.rm = TRUE))
 ggplot(data = bar_chart_data) +
   aes(x = continent, y = m_Obs_value,fill = continent) +
-  geom_bar(stat="identity")
+  geom_bar(stat="identity") +
+  labs(x="Continent",y="Percentage of population") +
+  theme_minimal() +
+  theme(text = element_text(family = "serif"), legend.position = "hide")
 
 map_world <- map_data("world")
 
-# time series
-ggplot(data = data_join) +
-  aes(year, obs_value, group = country, color = continent) + 
-  geom_line()
-
-ggplotly(timeseries_plot_1)
-
 # map
-
-map_data_join <- full_join(data_join, map_world, by = c("country" = "region"))
-data_join_2017 <- data_join %>%
-  filter(year==2017)
-map_data_join_2017 <- data_join_2017 %>%
+data_join_2021 <- data_join %>%
+  filter(year==2021)
+map_data_join_2021 <- data_join_2021 %>%
   full_join(map_world, by = c("country" = "region"))
-ggplot(map_data_join) +
-  aes(x=longitude,y=latitude, group = group, fill = obs_value) +
-  geom_polygon()
+ggplot(data=map_data_join_2021) +
+  aes(x=long,y=lat, group = group, fill = obs_value) +
+  geom_polygon() +
+  labs(fill = "Percentage") +
+  scale_fill_gradient2(low="#C26B50",high="#529985",midpoint = 50,mid="#DBCE47") +
+  theme(axis.title.x=element_blank(),
+      axis.text.x=element_blank(),
+      axis.ticks.x=element_blank(), 
+      axis.title.y=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks.y=element_blank())
+
+# time series
+ggplot(data=data_join) +
+  aes(year, obs_value, group = country, color = continent) + 
+  geom_line() +
+  labs(x="Evolution by year",y="Access to handwashing facility (%)", color = "Continent") +
+  theme_minimal() +
+  theme(text = element_text(family = "serif"))
+
 
 # scatter plot
-ggplot(data_join) +
+ggplot(data_join_2021) +
   aes(lifeExp, obs_value, color = continent, size = pop)+
-  geom_point(alpha= 0.2)+
-  facet_wrap(~ year) +
-  scale_x_continuous(
-    breaks = c(0, 100),
-    labels = scales :: unit_format(unit="k", scale = 0.001)) +
+  geom_point(alpha= 0.5)+
+  geom_smooth(method = "lm", se = FALSE) +
+  guides(size=FALSE) +
   labs(
         x="Access to water and soap",
         y="Life Expectancy",
-        title = "Countries with access to handwashing facility at home in relation to Life Expectancy" 
+        color= "Continent"
       )+
-      guides(color = "none") +
-      theme_classic()
-    theme(text = element_text(family="serif"))
+      theme_minimal()+
+  theme(text = element_text(family="serif"))
+
+# table
+table_data <- data_join_2021 %>%
+  group_by(continent) %>%
+  summarise(m_lifeExp=mean(lifeExp, na.rm = TRUE))
+library(knitr)
+
+# Print data as a table
+kable(table_data)
